@@ -22,7 +22,10 @@ void error(const char *msg)
 }
 
 int main(int argc, char *argv[]){
-    
+   
+    struct ledPanel * panel1 = openConnection("/dev/ttyACM0", 300, 60);
+    client_init(panel1);
+
     int listenfd;
     
     struct sockaddr_in serv_addr, cli_addr;
