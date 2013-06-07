@@ -24,13 +24,13 @@ Server -> Client
 I | len | Width | Height
 
 Width and Height of the Display.
-
+both are unsigned int32
 
 
 === Activate ===
 Server -> Client
 
-A | len | 0/1 
+A | len | 0/1 (1byte)
 
 0: Deactivate
 1: Activate
