@@ -1,0 +1,74 @@
+
+=== General Format ===
+
+Message ID | Message Length | Data
+
+Message ID: One char/byte specifying the type of message
+Length: 4byte/uint32 specifying the length of the Data Field
+
+
+=== Login ===
+Client -> Server
+
+L | len | 0/1 | Name
+
+0: Background
+1: Foreground
+
+Tells the Server the name of the App/Client and whether it would like to have exclusive access to the panel
+
+
+=== Response / Info ===
+Server -> Client
+
+I | len | Width | Height
+
+Width and Height of the Display.
+
+
+
+=== Activate ===
+Server -> Client
+
+A | len | 0/1 
+
+0: Deactivate
+1: Activate
+
+Tells the client wether he should currently be displayed.
+A Frame may still only be trnsmittet after a Ready package was received.
+
+
+=== Yield ===
+Client -> Server
+
+Y | len (0)
+
+Suggest the server to swap to a different app now.
+
+
+=== Data ===
+Client -> Server
+
+D | len | Data
+
+Data is Width*Height*3 bytes long and contains the image in RGB format
+The Server displays the image as soon as transmission is completed.
+Then either a new client is chosen or the current client is given the ready signal again.
+
+
+=== Ready ===
+Server -> Client
+
+R | len (0)
+
+Tells the client to start transmitting a frame now.
+
+
+
+
+
+
+
+
+
