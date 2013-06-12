@@ -1,4 +1,5 @@
 
+#include <semaphore.h>
 
 
 #define MAX_CLIENTS 100

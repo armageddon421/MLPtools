@@ -23,9 +23,15 @@ void error(const char *msg)
 
 int main(int argc, char *argv[]){
    
-    struct ledPanel * panel1 = openConnection("/dev/ttyACM0", 300, 60);
-    client_init(panel1);
 
+    printf("init.");
+    struct ledPanel * panel1 = openConnection("/dev/ttyACM0", 300, 60);
+    printf(".");
+    client_init(panel1);
+    printf("[DONE]\n\n");
+
+
+    printf("creating listen socket\n");
     int listenfd;
     
     struct sockaddr_in serv_addr, cli_addr;
@@ -47,7 +53,7 @@ int main(int argc, char *argv[]){
 
 
     //LOOP
-
+    printf("entering accept loop\n");
     while(42){
         int newsockfd = accept(listenfd, (struct sockaddr *) &cli_addr, &clilen); 
         if (newsockfd < 0) 
