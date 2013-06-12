@@ -291,7 +291,6 @@ void client_choose_next(struct client * cli){
     printf("%3d %20s | Choosing next client\n", cli->id, cli->name); 
     fflush(stdout);
 #endif
-    activeClient = 0;
 
     int newId = -1;
 
@@ -316,7 +315,8 @@ void client_choose_next(struct client * cli){
             }
         }
     }
-    if (newId >= 0){
+    activeClient = 0;
+    if (newId >= 0 && !(activeClient->mode == 1 && cli->mode)){
         activeClient = &(clients[newId]);
         client_activate(&(clients[newId]), 1);
 
