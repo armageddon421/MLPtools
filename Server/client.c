@@ -294,8 +294,10 @@ void client_choose_next(struct client * cli){
     activeClient = 0;
 
     int newId = -1;
+
+    if(activeClient->mode == 1 && cli->mode == 1) return;
     
-    if(cli != 0 && cli-> name != 0 && (activeClient == 0 || activeClient->name == 0 || activeClient->mode == 0 && cli->mode == 1)){
+    if(cli != 0 && cli-> name != 0 && (activeClient == 0 || activeClient->name == 0 || (activeClient->mode == 0 && cli->mode == 1))){
         newId = cli->id;
     }
     else{
