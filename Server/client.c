@@ -149,7 +149,7 @@ void *client_thread(void *arg){
                 memcpy(cli->name, name, length-1);
                 cli->name[length-1] = '\0';
                 
-                printf("%3d %20s | Registered with mode \n", cli->id, cli->name, cli->mode); 
+                printf("%3d %20s | Registered with mode %d\n", cli->id, cli->name, cli->mode); 
                 fflush(stdout);
 
                 ////bei Login mit Info antworten 
