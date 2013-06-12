@@ -13,6 +13,8 @@
 #include "client.h"
 
 
+//#define DEBUG
+
 struct client clients[MAX_CLIENTS];
 struct client * activeClient;
 
@@ -26,8 +28,11 @@ struct ledPanel * panel;
 void client_add(int sock, char *ip){
 
     //struct client * cli = malloc(sizeof(struct client)); 
-    
+   
+#ifdef DEBUG
     printf("Adding client from %s\n", ip);
+    fflush(stdout);
+#endif
 
     struct client * cli = 0;
 
@@ -44,7 +49,7 @@ void client_add(int sock, char *ip){
         return;
     }
     
-    sem_init(&(cli->semaphore), 0, 0);
+    //sem_init(&(cli->semaphore), 0, 0);
 
     cli->socket = sock;
 
@@ -53,12 +58,12 @@ void client_add(int sock, char *ip){
 
     cli->name = 0;
     
-    if (activeClient == 0){
-        activeClient = cli;
-    }
     
     
+#ifdef DEBUG
     printf("starting client thread\n");
+    fflush(stdout);
+#endif
     //thread starten
     pthread_t thread;
     pthread_create(&thread, NULL, client_thread, cli);
@@ -91,9 +96,13 @@ void *client_thread(void *arg){
 
     while(42){
         fflush(stdout);
+        
+#ifdef DEBUG
+        printf("%3d %20s | ............\n", cli->id, cli->name); 
+#endif
+
         //1 char lesen, nachrichtentyp bestimmen
         n = read(cli->socket, &type, sizeof(char));
-        printf("%d %c\n", n,type);
         if(n <0){
             client_drop(cli);
             return 0;
@@ -107,7 +116,6 @@ void *client_thread(void *arg){
         
         length = ntohl(length);
 
-        printf("%d %d\n", n, length); 
         
         if(length > recv_buffer_size){
             if(recv_buffer != 0){
@@ -126,9 +134,11 @@ void *client_thread(void *arg){
                 return 0;
             }
             rb += n;
-            printf("%d + %d\n", rb, n); 
         }
 
+#ifdef DEBUG
+        printf("%3d %20s | ^^^^^^^^^^^^\n", cli->id, cli->name); 
+#endif
 
         char yield = 0;
 
@@ -141,18 +151,29 @@ void *client_thread(void *arg){
                 memcpy(cli->name, name, length-1);
                 cli->name[length-1] = '\0';
                 
-                printf("client registered as \"%s\" with mode = %d\n", cli->name, cli->mode);
+#ifdef DEBUG
+                printf("%3d %20s | Registered with mode \n", cli->id, cli->name, cli->mode); 
+                fflush(stdout);
+#endif
 
                 ////bei Login mit Info antworten 
                 client_send_info(cli);
                 
+                //Falls noch kein aktiver client da ist, einen neuen aussuchen (diesen)
+                if (activeClient == 0){
+                    client_choose_next(cli);
+                }
+                
                 break;
             case 'Y':   //Yield
+#ifdef DEBUG
+                printf("%3d %20s | Received Yield\n", cli->id, cli->name); 
+                fflush(stdout);
+#endif
                 yield =1;
                 break;
             case 'D':
                 if(cli == activeClient){
-                    printf("received Data on active client\n");
                     client_handle_data(cli);
                 }
 
@@ -178,21 +199,29 @@ void *client_thread(void *arg){
             
         }
         
-        if(cli != activeClient){
+        /*if(cli != activeClient){
             //wait for reactivation / semaphore down
-            printf("waiting for semaphore\n");
+            printf("%3d %20s | Waiting for Semaphore\n", cli->id, cli->name); 
+            fflush(stdout);
             sem_wait(&(cli->semaphore));
-            printf("done waiting for semaphore\n");
-        }
+            printf("%3d %20s | Done waiting for Semaphore\n", cli->id, cli->name); 
+            fflush(stdout);
+        }*/
         
         //send ready
-        client_send(cli, 'R', 0, 0); 
+        if(cli == activeClient){
+#ifdef DEBUG
+            printf("%3d %20s | Sending RDY\n", cli->id, cli->name); 
+            fflush(stdout);
+#endif
+            client_send(cli, 'R', 0, 0);
+        }
     } 
     
 }
 
 void client_send(struct client * cli, char type, char *buf, int len){
-    printf("Sending message type %c\n", type); 
+    //printf("Sending message type %c\n", type); 
     char buffer[len+5];
     
     int nlen = htonl(len);
@@ -209,22 +238,27 @@ void client_send(struct client * cli, char type, char *buf, int len){
 }
 
 void client_drop(struct client * cli){
-    printf("Dropping client\n"); 
+#ifdef DEBUG
+    printf("%3d %20s | Dropping client\n", cli->id, cli->name); 
+    fflush(stdout);
+#endif
+    if(cli->name != 0){
+        free(cli->name);
+        cli->name = 0;
+    }
+    
     if(cli == activeClient){
         client_choose_next(cli);
     }
 
     close(cli->socket); //Stop both reception and transmission. 
+    cli->socket = 0;
     //free all resources
     //reset in array
     //ggf. choose new client
     
-    sem_destroy(&(cli->semaphore));
+    //sem_destroy(&(cli->semaphore));
    
-    if(cli->name != 0){
-        free(cli->name);
-        cli->name = 0;
-    }
 }
 
 void client_send_info(struct client * cli){
@@ -243,18 +277,43 @@ void client_send_info(struct client * cli){
 }
 
 void client_activate(struct client * cli, char active){
+    
+#ifdef DEBUG
+    if(active == 1)
+        printf("%3d %20s | Activating client\n", cli->id, cli->name); 
+    else
+        printf("%3d %20s | Deactivating client\n", cli->id, cli->name); 
+    
+    fflush(stdout);
+#endif
+    
     client_send(cli, 'A', &active, 1); 
 }
 
 void client_choose_next(struct client * cli){
     
+#ifdef DEBUG
+    printf("%3d %20s | Choosing next client\n", cli->id, cli->name); 
+    fflush(stdout);
+#endif
+    activeClient = 0;
+
     int i;
     for(i=0;i<MAX_CLIENTS;i++){
-        int id = (i+cli->id)%MAX_CLIENTS;
-        if(clients[id].name == 0){
-            client_activate(&(clients[id]), 1);
+        int id = (i+cli->id+1)%MAX_CLIENTS;
+        if(clients[id].name != 0){
             activeClient = &(clients[id]);
-            sem_post(&(clients[id].semaphore)); 
+            client_activate(&(clients[id]), 1);
+
+#ifdef DEBUG
+            printf("%3d %20s | Sending RDY to %d\n", cli->id, cli->name, id); 
+            fflush(stdout);
+#endif
+            
+            client_send(activeClient, 'R', 0, 0);
+            
+            //printf("%3d %20s | Posting to client %d\n", cli->id, cli->name, id); 
+            //sem_post(&(clients[id].semaphore)); 
             break;
         }
 
@@ -262,7 +321,10 @@ void client_choose_next(struct client * cli){
 }
 
 void client_handle_data(struct client * cli){
-
+#ifdef DEBUG
+    printf("%3d %20s | Received Data from client\n", cli->id, cli->name); 
+    fflush(stdout);
+#endif
     int i;
     for(i=0; i<(panel->stripLen*8); i++){
 
