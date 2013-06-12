@@ -29,10 +29,8 @@ void client_add(int sock, char *ip){
 
     //struct client * cli = malloc(sizeof(struct client)); 
    
-#ifdef DEBUG
     printf("Adding client from %s\n", ip);
     fflush(stdout);
-#endif
 
     struct client * cli = 0;
 
@@ -151,10 +149,8 @@ void *client_thread(void *arg){
                 memcpy(cli->name, name, length-1);
                 cli->name[length-1] = '\0';
                 
-#ifdef DEBUG
                 printf("%3d %20s | Registered with mode \n", cli->id, cli->name, cli->mode); 
                 fflush(stdout);
-#endif
 
                 ////bei Login mit Info antworten 
                 client_send_info(cli);
@@ -238,10 +234,9 @@ void client_send(struct client * cli, char type, char *buf, int len){
 }
 
 void client_drop(struct client * cli){
-#ifdef DEBUG
     printf("%3d %20s | Dropping client\n", cli->id, cli->name); 
     fflush(stdout);
-#endif
+    
     if(cli->name != 0){
         free(cli->name);
         cli->name = 0;
@@ -278,14 +273,14 @@ void client_send_info(struct client * cli){
 
 void client_activate(struct client * cli, char active){
     
-#ifdef DEBUG
     if(active == 1)
         printf("%3d %20s | Activating client\n", cli->id, cli->name); 
+#ifdef DEBUG
     else
         printf("%3d %20s | Deactivating client\n", cli->id, cli->name); 
+#endif
     
     fflush(stdout);
-#endif
     
     client_send(cli, 'A', &active, 1); 
 }
