@@ -156,7 +156,7 @@ void *client_thread(void *arg){
                 client_send_info(cli);
                 
                 //Falls noch kein aktiver client da ist, einen neuen aussuchen (diesen)
-                if (activeClient == 0){
+                if (activeClient == 0 || cli->mode == 1){
                     client_choose_next(cli);
                 }
                 
@@ -293,26 +293,40 @@ void client_choose_next(struct client * cli){
 #endif
     activeClient = 0;
 
-    int i;
-    for(i=0;i<MAX_CLIENTS;i++){
-        int id = (i+cli->id+1)%MAX_CLIENTS;
-        if(clients[id].name != 0){
-            activeClient = &(clients[id]);
-            client_activate(&(clients[id]), 1);
+    int newId = -1;
+    
+    if(activeClient->mode == 0 && cli->mode == 1){
+        newId = cli->id;
+    }
+    else{
+        int i;
+        for(i=0;i<MAX_CLIENTS;i++){
+            int id = (i+cli->id+1)%MAX_CLIENTS;
+            if(clients[id].name != 0 && clients[id].mode == 1){
+                newId = id;
+                break;
+            }
+        }
+        for(i=0;i<MAX_CLIENTS;i++){
+            int id = (i+cli->id+1)%MAX_CLIENTS;
+            if(clients[id].name != 0){
+                newId = id;
+                break;
+            }
+        }
+    }
+    if (newId >= 0){
+        activeClient = &(clients[newId]);
+        client_activate(&(clients[newId]), 1);
 
 #ifdef DEBUG
-            printf("%3d %20s | Sending RDY to %d\n", cli->id, cli->name, id); 
-            fflush(stdout);
+        printf("%3d %20s | Sending RDY to %d\n", cli->id, cli->name, newId); 
+        fflush(stdout);
 #endif
-            
-            client_send(activeClient, 'R', 0, 0);
-            
-            //printf("%3d %20s | Posting to client %d\n", cli->id, cli->name, id); 
-            //sem_post(&(clients[id].semaphore)); 
-            break;
-        }
-
+        
+        client_send(activeClient, 'R', 0, 0);
     }
+
 }
 
 void client_handle_data(struct client * cli){
