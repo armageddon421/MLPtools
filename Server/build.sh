@@ -1,5 +1,5 @@
 #!/bin/bash
-gcc -o server -g -lpthread *.c
+gcc -o server -O0 -g -lpthread *.c
 
 
 

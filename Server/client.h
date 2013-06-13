@@ -23,4 +23,4 @@ void client_drop(struct client * cli);
 void client_activate(struct client * cli, char active);
 void client_send_info(struct client * cli);
 void client_choose_next(struct client * cli);
-void client_handle_data(struct client * cli);
+void client_handle_data(struct client * cli, char *recv_buffer);

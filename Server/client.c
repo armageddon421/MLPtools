@@ -13,13 +13,11 @@
 #include "client.h"
 
 
-//#define DEBUG
+ #define DEBUG
 
 struct client clients[MAX_CLIENTS];
 struct client * activeClient;
 
-char *recv_buffer;
-int recv_buffer_size;
 
 struct ledPanel * panel;
 
@@ -74,7 +72,6 @@ void client_add(int sock, char *ip){
 
 void client_init(struct ledPanel * pan){
     panel = pan;
-    recv_buffer_size = -1;
    
     int i;
     for(i=0;i<MAX_CLIENTS;i++){
@@ -90,6 +87,9 @@ void *client_thread(void *arg){
 
     char type;
     int length;
+    
+    char *recv_buffer;
+    int recv_buffer_size = -1;
    
 
     while(42){
@@ -114,6 +114,12 @@ void *client_thread(void *arg){
         
         length = ntohl(length);
 
+
+#ifdef DEBUG
+        printf("%3d %20s | ---- length: %d\n", cli->id, cli->name, length); 
+        fflush(stdout);
+#endif
+
         
         if(length > recv_buffer_size){
             if(recv_buffer != 0){
@@ -132,10 +138,15 @@ void *client_thread(void *arg){
                 return 0;
             }
             rb += n;
+#ifdef DEBUG
+            printf("%3d %20s | ---- read %d, now %d\n", cli->id, cli->name, n, rb); 
+            fflush(stdout);
+#endif
         }
 
 #ifdef DEBUG
         printf("%3d %20s | ^^^^^^^^^^^^\n", cli->id, cli->name); 
+        fflush(stdout);
 #endif
 
         char yield = 0;
@@ -170,7 +181,7 @@ void *client_thread(void *arg){
                 break;
             case 'D':
                 if(cli == activeClient){
-                    client_handle_data(cli);
+                    client_handle_data(cli, recv_buffer);
                 }
 
                 break;
@@ -258,8 +269,11 @@ void client_drop(struct client * cli){
 
 void client_send_info(struct client * cli){
     
-    unsigned int width = htonl(panel->width);
-    unsigned int height = htonl(panel->stripLen * 8 / panel->width);
+    printf("%d\n", panel->width);
+    //unsigned int width = htonl(panel->width);
+    //unsigned int height = htonl(panel->stripLen * 8 / panel->width);
+    unsigned int width = htonl(60);
+    unsigned int height = htonl(300 * 8 / 60);
     
     
 
@@ -334,12 +348,15 @@ void client_choose_next(struct client * cli){
 
 }
 
-void client_handle_data(struct client * cli){
+void client_handle_data(struct client * cli, char *recv_buffer){
 #ifdef DEBUG
     printf("%3d %20s | Received Data from client\n", cli->id, cli->name); 
     fflush(stdout);
 #endif
     int i;
+
+
+
     for(i=0; i<(panel->stripLen*8); i++){
 
         setPixel(panel, i, (recv_buffer[i*3] << 16) | (recv_buffer[i*3+1] << 8) | recv_buffer[i*3+2]);
