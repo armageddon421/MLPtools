@@ -200,9 +200,11 @@ void *client_thread(void *arg){
         if(yield == 1){     //TODO: Timer
             //deactivate client
             client_activate(cli, 0);
-
+            
+            if(cli == activeClient){
             //choose and activate next client / semaphore up
-            client_choose_next(cli); 
+                client_choose_next(cli);
+            }
             
         }
         
@@ -309,31 +311,40 @@ void client_choose_next(struct client * cli){
     int newId = -1;
 
     if(activeClient != 0 && activeClient->name != 0 && activeClient->mode == 1){
+        printf("Same because Active is mode 1\n");
+        fflush(stdout);
         return;
     }
 
-    activeClient = 0;
     
     if(cli != 0 && cli->name != 0 && (activeClient == 0 || activeClient->name == 0 || (activeClient->mode == 0 && cli->mode == 1))){
         newId = cli->id;
+        printf("New because New is mode 1\n");
+        fflush(stdout);
     }
     else{
         int i;
         for(i=0;i<MAX_CLIENTS;i++){
             int id = (i+cli->id+1)%MAX_CLIENTS;
-            if(clients[id].name != 0 && clients[id].mode == 1){
+            if(clients[id].name != 0){
                 newId = id;
+                printf("Found a Client with mode 0\n");
+                fflush(stdout);
                 break;
             }
         }
         for(i=0;i<MAX_CLIENTS;i++){
             int id = (i+cli->id+1)%MAX_CLIENTS;
-            if(clients[id].name != 0){
+            if(clients[id].name != 0 && clients[id].mode == 1){
                 newId = id;
+                printf("Found a Client with mode 1\n");
+                fflush(stdout);
                 break;
             }
         }
     }
+    
+    activeClient = 0;
     if (newId >= 0){
         activeClient = &(clients[newId]);
         client_activate(&(clients[newId]), 1);

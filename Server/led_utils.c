@@ -34,8 +34,8 @@ struct ledPanel * openConnection(char *device, unsigned int stripLen, unsigned i
 
 void update(struct ledPanel * panel){
     
-    printf("updating...");
-    fflush(stdout);
+//    printf("updating...");
+  //  fflush(stdout);
     //int written = write(panel->fd, panel->buffer, panel->stripLen*24);
     //char nl = '\n';
     //write(panel->fd, "Begin", 5);
@@ -43,8 +43,8 @@ void update(struct ledPanel * panel){
     //fsync(panel->fd);
 
     //tcdrain(panel->fd);
-    printf("sent %d...", written);
-    fflush(stdout);
+    //printf("sent %d...", written);
+    //fflush(stdout);
 
     char test[1];
     
@@ -72,8 +72,8 @@ void update(struct ledPanel * panel){
     //while (buffer[0] != '\n'){
     //    read(panel->fd, buffer, 1);
     //}
-    printf("done!\n");
-    fflush(stdout);
+    //printf("done!\n");
+    //fflush(stdout);
     //printf("\t\t\t\t\t\t wrote %d\n", written);
     
     
