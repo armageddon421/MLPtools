@@ -13,7 +13,7 @@
 #include "client.h"
 
 
- #define DEBUG
+// #define DEBUG
 
 struct client clients[MAX_CLIENTS];
 struct client * activeClient;
@@ -342,8 +342,9 @@ void client_choose_next(struct client * cli){
         printf("%3d %20s | Sending RDY to %d\n", cli->id, cli->name, newId); 
         fflush(stdout);
 #endif
-        
-        client_send(activeClient, 'R', 0, 0);
+        if(activeClient != cli){ 
+            client_send(activeClient, 'R', 0, 0);
+        }
     }
 
 }

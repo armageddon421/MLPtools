@@ -3,7 +3,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/fcntl.h>
+
+//serial stuff
+#include <termios.h>
 #include <unistd.h>
+
 #include <stdint.h>
 
 #include "led_utils.h"
@@ -13,7 +17,14 @@ struct ledPanel * openConnection(char *device, unsigned int stripLen, unsigned i
     struct ledPanel * panel = malloc(sizeof(struct ledPanel));
     
 
-    panel->fd = open(device, O_RDWR | O_NOCTTY);
+    panel->fd = open(device, O_RDWR | O_NOCTTY |O_SYNC);
+    
+    struct termios termios_p;
+    cfmakeraw(&termios_p);
+    tcsetattr(panel->fd, TCSANOW, &termios_p);
+    
+    
+    
     panel->width = width;
     panel->stripLen = stripLen;
     panel->buffer = malloc(sizeof(int)*stripLen*6);
@@ -26,14 +37,40 @@ void update(struct ledPanel * panel){
     printf("updating...");
     fflush(stdout);
     //int written = write(panel->fd, panel->buffer, panel->stripLen*24);
-    int written = write(panel->fd, panel->buffer, 7200);
-    
-    char buffer[1];
+    //char nl = '\n';
+    //write(panel->fd, "Begin", 5);
+    int written = write(panel->fd, (char*)panel->buffer, 7200);
+    //fsync(panel->fd);
 
-    //while (buffer[0] != 'r'){
-    printf("waiting...");
+    //tcdrain(panel->fd);
+    printf("sent %d...", written);
     fflush(stdout);
-        //read(panel->fd, buffer, 1);
+
+    char test[1];
+    
+   /* 
+    int i;
+    for(i = 0; i<7200;i++){
+        read(panel->fd, test, 1);
+        printf("at %4d should be %8d read %8d\n", i,((char*)panel->buffer)[i], test[0]);
+        
+        if(((char*)panel->buffer)[i] != test[0]){
+            printf("difference at %d!!!\n", i);
+        }
+        fflush(stdout);
+    }
+*/
+    
+    //char nl = '\n';
+    //write(panel->fd, &nl, 1);
+    //write(panel->fd, &nl, 1);
+
+    //char buffer[1];
+
+    //printf("waiting...");
+    //fflush(stdout);
+    //while (buffer[0] != '\n'){
+    //    read(panel->fd, buffer, 1);
     //}
     printf("done!\n");
     fflush(stdout);
