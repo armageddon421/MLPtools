@@ -24,9 +24,9 @@ public class Life {
 	private static final int	numSums	= 10;
 	
 	
-	public Life() {
+	public Life(final String ip) {
 		
-		panel = new MLPClient("10.42.14.235", "Game of Life!", (byte) 0);
+		panel = new MLPClient(ip, "Game of Life!", (byte) 0);
 		
 		
 		panel.addActiveListener(new MLPActiveListener() {
@@ -346,7 +346,11 @@ public class Life {
 	 */
 	public static void main(final String[] args) {
 		
-		Life life = new Life();
+		String ip = "10.42.14.235";
+		if (args.length == 1) {
+			ip = args[0];
+		}
+		Life life = new Life(ip);
 		
 		
 	}

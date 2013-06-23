@@ -43,11 +43,11 @@ public class Pong {
 				255, 255, 255, 255, 255, 255, 255, 255, 255 }, 3);
 	}
 	
-	public Pong() {
+	public Pong(final String ip) {
 		
 		createNumbers();
 		
-		panel = new MLPClient("10.42.14.235", "Pong", (byte) 0);
+		panel = new MLPClient(ip, "Pong", (byte) 0);
 		
 		panel.addActiveListener(new MLPActiveListener() {
 			
@@ -287,8 +287,11 @@ public class Pong {
 	 * @param args
 	 */
 	public static void main(final String[] args) {
-		
-		Pong pong = new Pong();
+		String ip = "10.42.14.235";
+		if (args.length == 1) {
+			ip = args[0];
+		}
+		Pong pong = new Pong(ip);
 		
 		
 	}
