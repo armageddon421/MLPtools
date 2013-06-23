@@ -132,7 +132,10 @@ public class MLPClient {
 		else {
 			dout.writeInt(data.length);
 			dout.write(data);
+			
 		}
+		
+		// System.out.printf("%5d - %c\n", data.length, (char) type);
 		
 		dout.flush();
 	}

@@ -1,5 +1,5 @@
 package de.armageddon421.mlp;
 
 public abstract class MLPReadyListener {
-	abstract void nowReady();
+	public abstract void nowReady();
 }

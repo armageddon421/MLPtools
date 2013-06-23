@@ -1,7 +1,7 @@
 package de.armageddon421.mlp;
 
 public abstract class MLPActiveListener {
-	abstract void nowActive();
+	public abstract void nowActive();
 	
-	abstract void nowInactive();
+	public abstract void nowInactive();
 }
